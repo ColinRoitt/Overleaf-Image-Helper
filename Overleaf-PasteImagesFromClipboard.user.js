@@ -42,7 +42,7 @@ function retrieveImageFromClipboardAsBlob(pasteEvent, callback){
 function uploadImage(imageBlob,hash){
     try{
         var xhr = new XMLHttpRequest();
-        var url = document.location.pathname + "/upload?folder_id=" + _ide.fileTreeManager.findEntityByPath("assets").id + "&_csrf=" + csrfToken;
+        var url = document.location.pathname + "/upload?folder_id=" + _ide.fileTreeManager.findEntityByPath("Figures").id + "&_csrf=" + csrfToken;
         let formData = new FormData();
         formData.append("qqfile", imageBlob, hash + ".png");
         formData.append("relativePath", null);
@@ -64,13 +64,13 @@ function uploadImage(imageBlob,hash){
 };
 
 function checkAndCreateAssetsFolder(){
-    if (_ide.fileTreeManager.findEntityByPath("assets")){
-        console.log("Assets folder exists...")
+    if (_ide.fileTreeManager.findEntityByPath("Figures")){
+        console.log("Figures folder exists...")
     }
     else {
-        console.log("Assets folder does not exist...")
+        console.log("Figures folder does not exist...")
         try {
-            _ide.fileTreeManager.createFolder("assets","/");
+            _ide.fileTreeManager.createFolder("Figures","/");
         } catch(e) {
             console.log(e);
         }
@@ -98,6 +98,7 @@ function checkAndCreateAssetsFolder(){
 
 // Listen for paste events
 document.querySelector('.editor').addEventListener('paste', function(e){
+    console.log("I have seen paste")
     try {
         // Handle the event
         retrieveImageFromClipboardAsBlob(e, function(imageBlob){
@@ -110,13 +111,14 @@ document.querySelector('.editor').addEventListener('paste', function(e){
                     var hash = CryptoJS.SHA256(reader.result).toString().substring(0,8);
                     const insertText = "\\begin{figure}[h!]\n\
 \t\\centering\n\
-\t\\includegraphics[width=0.66\\textwidth]{assets/" + hash + ".png}\n\
+\t\\includegraphics[width=0.66\\textwidth]{Figures/" + hash + ".png}\n\
 \t\\caption{Caption}\n\
 \\end{figure}"
                     console.log("Uploading image...")
                     uploadImage(imageBlob,hash);
                     const cursorPos = _ide.editorManager.$scope.editor.sharejs_doc.cm6.view.state.selection.ranges[0].from
                     _ide.editorManager.$scope.editor.sharejs_doc.cm6.cmInsert(cursorPos, insertText);
+                    console.log(insertText.length);
                     const endOfCaptionText = cursorPos + insertText.length - 14
                     _ide.editorManager.$scope.editor.sharejs_doc.cm6.view.dispatch({selection: {head: endOfCaptionText - 7, anchor: endOfCaptionText}})
                 };
